@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>avion.png</file>
+        <file>logo_thommen.png</file>
+    </qresource>
+</RCC>

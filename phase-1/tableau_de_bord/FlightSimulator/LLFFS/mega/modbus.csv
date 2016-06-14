@@ -1,0 +1,216 @@
+# modbus.csv
+#
+# configuration file for QamModbusMap - 23/04/2016
+# ----------------------------------------------------------------------------
+#              LLF Flight Simulator - (c)2016 by Alain Menu
+# 
+#     Unités Modbus Slave de contrôle des E/S des panneaux d'instruments
+#
+# <<< Liste complète des E/S, à répartir sur plusieurs esclaves physiques. >>>
+#
+# NOTE: Un esclave Modbus  gère les E/S  pour un ou plusieurs  emplacements de
+#		module identifiés par leur numéro ; l'association entre les numéros de
+#		modules et les instruments  est faite par  le fichier de configuration
+#		générale de l'application maître.
+#
+# NOTE:	chaque esclave Modbus  gère le rafraîchissement périodique des valeurs
+#		de sa cartographie (cf. variable 'Sampling').
+# ----------------------------------------------------------------------------
+#
+# E/S TOR : 1 x 'holding register' par module, 2 bits par E/S
+#
+#    |<--       STOR = Led        -->|<--  ETOR = Sel, Int, Inv   -->|
+#
+#     15  14  13  12  11  10   9   8   7   6   5   4   3   2   1   0
+#    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+#    |   D   |   C   |   B   |   A   |   D   |   C   |   B   |   A   |
+#    +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+#
+# Led : 4 états : b1b0 = 00:Off,   01:On,        10:Slow Blink, 11:Fast Blink
+# Inv : 2 états : b1b0 = X0:Down,  X1:Up
+# Int : 2 états : b1b0 = X0:Off,   X1:On
+# Sel : 3 états : b1b0 = X0:Off,   01:ShortClic, 11:LongCLic
+#
+# NOTE:	une led peut être éteinte, allumée fixe ou clignotante ; la gestion
+#		du clignotement est à la charge de l'esclave Modbus (cf. variables
+#		'Slow' et 'Fast').
+#
+# NOTE:	pour les entrées Sel et Int, la cartographie de l'esclave montre 
+#		toujours l'état 00 quand les actuateurs sont au repos, quelle que
+#		soit leur logique électrique de câblage.
+#
+# NOTE:	la remise à zéro de Sel est à la charge de l'application maître,
+#		l'esclave Modbus n'assure que la mise à 01 ou 11 lors du relâchement
+#		du bouton-poussoir (cf. variables 'Short' et 'Long').
+# ----------------------------------------------------------------------------
+#
+# E ANA : 1 x 'input register'
+#
+# Adj :	Uint 0..1000 (o/oo = 1/10 de %)
+#
+# NOTE:	les entrées analogiques (type potentiomètre) sont toujours présentées
+#		par l'esclave Modbus dans l'intervalle entier 0 à 1000 ; c'est
+#		l'application maître qui se charge de la conversion dans l'unité
+#		et l'intervalle requis (cf. fichier de config. générale).
+# ----------------------------------------------------------------------------
+#
+# CONTRAINTES GLOBALES
+#
+# Seules les tables 16 bits sont utilisées, l'application maître ne prend pas
+# en compte les tables 1 bit 'Coil' et 'DiscretInput'.
+#
+# Le préfixe de nom 'Sel' doit être respecté pour que l'application maître
+# soit susceptible d'en assurer la remise à zéro.
+#
+# Le format des variables doit toujours être Uint (champ 'display').
+#
+# Pour accéder à une variable Modbus, l'application maître fait une recherche
+# globale par nom sur l'ensemble des esclaves.
+# Un même nom (en dehors des registres 40001 à 40009) ne peut donc être utilisé
+# par plusieurs esclaves.
+# ----------------------------------------------------------------------------
+
+# 2 fields for server address, port and short description
+
+HOST;192.168.0.10
+PORT;502
+INFO;LLF FS Modbus Server
+
+# 7 fields for entries: number; size; mask; name; comment; display; value
+
+# Configuration Esclave
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40001;1;FFFF; 	Sampling;  	période d'échantillonnage en ms;	Uint;   200
+40002;1;FFFF;	Slow;		période clignotement lent en ms;	Uint;	500
+40003;1;FFFF;	Fast;		période clignotement rapide en ms;	Uint;	250
+40004;1;FFFF;	Short;		durée min. clic court en ms;		Uint;	300
+40005;1;FFFF;	Long;		durée min. clic long en ms;			Uint;	3000
+
+# Module 1 (ALT)
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40010;1;FFFF;	TOR-1;		module 1 - E/S TOR;					Hex;	0
+40010;1;0030;	SelD-1;		module 1 - Sélecteur D;				Uint;	0
+40010;1;0300;	LedA-1;		module 1 - Led A rouge;				Uint;	0
+40010;1;0C00;	LedB-1;		module 1 - Led B jaune;				Uint;	0
+
+# 3xxxx - input registers
+30010;1;FFFF;	AdjC-1;		module 1 - réglage C;				Uint;	0
+
+# Module 2 (VSI)
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40020;1;FFFF;	TOR-2;		module 2 - E/S TOR;					Hex;	0
+40020;1;0030;	SelD-2;		module 2 - Sélecteur D;				Uint;	0
+40020;1;0300;	LedA-2;		module 2 - Led A rouge;				Uint;	0
+40020;1;0C00;	LedB-2;		module 2 - Led B jaune;				Uint;	0
+
+# Module 3 (AH)
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40030;1;FFFF;	TOR-3;		module 3 - E/S TOR;					Hex;	0
+40030;1;0030;	SelD-3;		module 3 - Sélecteur D;				Uint;	0
+40030;1;0300;	LedA-3;		module 3 - Led A rouge;				Uint;	0
+40030;1;0C00;	LedB-3;		module 3 - Led B jaune;				Uint;	0
+
+# 3xxxx - input registers
+30030;1;FFFF;	AdjC-3;		module 3 - réglage C;				Uint;	0
+
+# Module 4 (ASI)
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40040;1;FFFF;	TOR-4;		module 4 - E/S TOR;					Hex;	0
+40040;1;0030;	SelD-4;		module 4 - Sélecteur D;				Uint;	0
+40040;1;0300;	LedA-4;		module 4 - Led A rouge;				Uint;	0
+40040;1;0C00;	LedB-4;		module 4 - Led B jaune;				Uint;	0
+
+# 3xxxx - input registers
+30040;1;FFFF;	AdjC-4;		module 4 - réglage C;				Uint;	0
+
+# Module 5
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40050;1;FFFF;	TOR-5;		module 5 - E/S TOR;					Hex;	0
+40050;1;0030;	SelD-5;		module 5 - Sélecteur D;				Uint;	0
+40050;1;0300;	LedA-5;		module 5 - Led A rouge;				Uint;	0
+40050;1;0C00;	LedB-5;		module 5 - Led B bleue;				Uint;	0
+
+# Module 6
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40060;1;FFFF;	TOR-6;		module 6 - E/S TOR;					Hex;	0
+40060;1;0030;	SelD-6;		module 6 - Sélecteur D;				Uint;	0
+40060;1;0300;	LedA-6;		module 6 - Led A rouge;				Uint;	0
+40060;1;0C00;	LedB-6;		module 6 - Led B bleue;				Uint;	0
+
+# Module 7 (DG)
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40070;1;FFFF;	TOR-7;		module 7 - E/S TOR;					Hex;	0
+40070;1;0030;	SelD-7;		module 7 - Sélecteur D;				Uint;	0
+40070;1;0300;	LedA-7;		module 7 - Led A rouge;				Uint;	0
+40070;1;0C00;	LedB-7;		module 7 - Led B jaune;				Uint;	0
+
+# 3xxxx - input registers
+30070;1;FFFF;	AdjC-7;		module 7 - réglage C;				Uint;	0
+
+# Module 8
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40080;1;FFFF;	TOR-8;		module 8 - E/S TOR;					Hex;	0
+40080;1;0003;	SelA-8;		module 8 - Sélecteur A;				Uint;	0
+40080;1;0030;	SelC-8;		module 8 - Sélecteur C;				Uint;	0
+40080;1;0C00;	LedB-8;		module 8 - Led B rouge;				Uint;	0
+40080;1;C000;	LedD-8;		module 8 - Led D bleue;				Uint;	0
+
+# Module 9
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40090;1;FFFF;	TOR-9;		module 9 - E/S TOR;					Hex;	0
+40090;1;0003;	IntA-9;		module 9 - Interrupteur A;			Uint;	0
+40090;1;000C;	IntB-9;		module 9 - Interrupteur B;			Uint;	0
+40090;1;0030;	IntC-9;		module 9 - Interrupteur C;			Uint;	0
+40090;1;00C0;	InvD-9;		module 9 - Inverseur D;				Uint;	0
+40090;1;0300;	LedA-9;		module 9 - Led A rouge;				Uint;	0
+40090;1;0C00;	LedB-9;		module 9 - Led B jaune;				Uint;	0
+40090;1;3000;	LedC-9;		module 9 - Led C verte;				Uint;	0
+
+# Module 10
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40100;1;FFFF;	TOR-10;		module 10 - E/S TOR;				Hex;	0
+40100;1;0003;	IntA-10;	module 10 - Interrupteur A;			Uint;	0
+40100;1;000C;	IntB-10;	module 10 - Interrupteur B;			Uint;	0
+40100;1;0030;	InvC-10;	module 10 - Inverseur C;			Uint;	0
+40100;1;00C0;	InvD-10;	module 10 - Inverseur D;			Uint;	0
+40100;1;0300;	LedA-10;	module 10 - Led A jaune;			Uint;	0
+40100;1;0C00;	LedB-10;	module 10 - Led B verte;			Uint;	0
+
+# Module 11 (TC)
+# ----------------------------------------------------------------------------
+
+# Module 12
+# ----------------------------------------------------------------------------
+
+# 4xxxx - holding registers
+40120;1;FFFF;	TOR-12;		module 12 - E/S TOR;				Hex;	0
+40120;1;0003;	IntA-12;	module 12 - Interrupteur A;			Uint;	0
+40120;1;000C;	IntB-12;	module 12 - Interrupteur B;			Uint;	0
+40120;1;0030;	IntC-12;	module 12 - Interrupteur C;			Uint;	0
+40120;1;00C0;	IntD-12;	module 12 - Interrupteur D;			Uint;	0
+40120;1;0300;	LedA-12;	module 12 - Led A rouge;			Uint;	0
+40120;1;0C00;	LedB-12;	module 12 - Led B jaune;			Uint;	0
+40120;1;3000;	LedC-12;	module 12 - Led C rouge;			Uint;	0
+40120;1;C000;	LedD-12;	module 12 - Led D rouge;			Uint;	0
